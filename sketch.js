@@ -1,19 +1,12 @@
+/* Fractal music generator with L-systems inspired by the code developed by mohammadfairuz.ramla@mylasalle.edu.sg */
 
-//setting up rules for L-systems
-var rules = {
-  "A":["C#","F","E"],
-  "C":["G","E"],
-  "E":["C","Gb"],
-  "F":["A","C"],
-  "G":["E","F","C"]
-};
-//C# myxolidioan scale
+//C# myxolidioan scale for L-systems
 var newrules = {
-  "C#":["C#","E#"],
+  "C#":["E#", "C#"],
   "D#":["G#","F#", "B"],
   "E#":["C#","D#"],
   "F#":["A#","A#"],
-  "G#":["E#", "G#"],
+  "G#":["E#", "G#", "D#"],
   "A#":["F#","B","C#"],
   "B":["D#","E#"],
 };
@@ -25,13 +18,11 @@ let newTokens = [];
 let sequences = [initSeq, []];
 let fontSize = 24;
 let maxNumSequences = 8;
-let maxSequenceLength = 30;
+let maxSequenceLength = 24;
 
 function setup() {
+  createCanvas(windowWidth, windowHeight-50);
   
-  //setting up visuals
-  createCanvas(800, 500);
-
   //setting up sound engine
   synth = new p5.PolySynth();
   sloop = new p5.SoundLoop(soundLoop, 1);
@@ -75,7 +66,6 @@ function soundLoop(cycleStartTime) {
   delay.process(synth, 0.2, 0.6, 2500);
   filter.set(500, 1);
   
-
   //assigning synth parameters and playing notes
   var velocity = 0.2;
   var beatSeconds = 0.4;
@@ -90,25 +80,16 @@ function soundLoop(cycleStartTime) {
 }
 
 function draw() {
-  background(0, 255, 255);
-
-  highlightNote(seqIndex, noteIndex, generatingTokenColor);
-  for (var i=0; i<newTokens.length; i++) {
-     highlightNote(seqIndex + 1, sequences[seqIndex + 1].length - 1 - i, newTokenColor);
+  background(000000);
+  textAlign(LEFT, CENTER);
+  noStroke();
+  //displaying played notes with a gradient, and continously shifting them upwards
+  for (var i = 0; i < sequences.length; i++) {
+    fill(255 - 180 * (i + 1) / sequences.length);
+    var seq = sequences[i];
+    var lineHeight = fontSize + 5;
+    text(seq.join(" "), 50, height * 3/4 - lineHeight * (sequences.length - i - 1));
   }
-
-  // textAlign(CENTER, CENTER);
-  // noStroke();
-
-   for (var i=0; i<sequences.length; i++) {
-     fill(255 - 195 * (i+1) / sequences.length);
-     if (i == sequences.length - 1) {
-       fill(0, 150, 255); // Generated tokens text
-     }
-     var seq = sequences[i];
-     var lineHeight = fontSize + 10;
-     text(seq.join(" "), width/2, height*2/3 - lineHeight * (sequences.length - i - 1));
-   }
 }
 
 //crerating new empty array for next sequence of notes
