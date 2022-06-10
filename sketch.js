@@ -1,16 +1,26 @@
 
-//setting up rools for L-systems
+//setting up rules for L-systems
 var rules = {
-  "A":["C","F","E"],
+  "A":["C#","F","E"],
   "C":["G","E"],
-  "E":["C","G"],
+  "E":["C","Gb"],
   "F":["A","C"],
   "G":["E","F","C"]
+};
+//C# myxolidioan scale
+var newrules = {
+  "C#":["C#","E#"],
+  "D#":["G#","F#", "B"],
+  "E#":["C#","D#"],
+  "F#":["A#","A#"],
+  "G#":["E#", "G#"],
+  "A#":["F#","B","C#"],
+  "B":["D#","E#"],
 };
 
 var seqIndex = 0;
 var noteIndex = -1;
-let initSeq = ["C"];
+let initSeq = ["C#"];
 let newTokens = [];
 let sequences = [initSeq, []];
 let fontSize = 24;
@@ -24,7 +34,10 @@ function setup() {
 
   //setting up sound engine
   synth = new p5.PolySynth();
-  sloop = new p5.SoundLoop(soundLoop, 0.5);
+  sloop = new p5.SoundLoop(soundLoop, 1);
+  reverb = new p5.Reverb();
+  delay = new p5.Delay();
+  filter = new p5.LowPass();
   
   //play button functionality
   playButton = createButton('Play');
@@ -53,40 +66,49 @@ function soundLoop(cycleStartTime) {
   var token = sequences[seqIndex][noteIndex];
   
   //specifing octaves of sound based on the output of the loop
-  var pitch = token + "4"; 
+  var pitch = token + "5"; 
   
+  //assigning audio effects
+  synth.setADSR(0.01,0.2,0,0.1); 
+  reverb.process(synth, 1.5, 1.5);
+  reverb.drywet(0.5);
+  delay.process(synth, 0.2, 0.6, 2500);
+  filter.set(500, 1);
+  
+
   //assigning synth parameters and playing notes
-  var velocity = 0.5;
-  var beatSeconds = 0.5;
-  var duration = random([beatSeconds, beatSeconds/4]);
+  var velocity = 0.2;
+  var beatSeconds = 0.4;
+  var duration = random([beatSeconds/2, beatSeconds]);
   this.interval = duration;
   synth.play(pitch, velocity, cycleStartTime, duration);
-  
+  synth.connect(filter);
+
   //preparing next sequence of notes with the rule and adding it to the array
-  newTokens = rules[token];
+  newTokens = newrules[token];
   sequences[seqIndex+1] = sequences[seqIndex+1].concat(newTokens);
 }
 
 function draw() {
   background(0, 255, 255);
 
-  // highlightNote(seqIndex, noteIndex, generatingTokenColor);
-  // for (var i=0; i<newTokens.length; i++) {
-  //   highlightNote(seqIndex + 1, sequences[seqIndex + 1].length - 1 - i, newTokenColor);
-  // }
+  highlightNote(seqIndex, noteIndex, generatingTokenColor);
+  for (var i=0; i<newTokens.length; i++) {
+     highlightNote(seqIndex + 1, sequences[seqIndex + 1].length - 1 - i, newTokenColor);
+  }
 
   // textAlign(CENTER, CENTER);
   // noStroke();
 
-  // for (var i=0; i<sequences.length; i++) {
-  //   fill(255 - 195 * (i+1) / sequences.length);
-  //   if (i == sequences.length - 1) {
-  //     fill(0, 150, 255); // Generated tokens text
-  //   }
-  //   var seq = sequences[i];
-  //   var lineHeight = fontSize + 10;
-  //   text(seq.join(" "), width/2, height*2/3 - lineHeight * (sequences.length - i - 1));
-  // }
+   for (var i=0; i<sequences.length; i++) {
+     fill(255 - 195 * (i+1) / sequences.length);
+     if (i == sequences.length - 1) {
+       fill(0, 150, 255); // Generated tokens text
+     }
+     var seq = sequences[i];
+     var lineHeight = fontSize + 10;
+     text(seq.join(" "), width/2, height*2/3 - lineHeight * (sequences.length - i - 1));
+   }
 }
 
 //crerating new empty array for next sequence of notes
